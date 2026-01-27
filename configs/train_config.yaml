@@ -1,0 +1,3 @@
+train_path: data/processed/train.npz
+val_path: data/processed/val.npz
+output_path: artifacts/model.joblib

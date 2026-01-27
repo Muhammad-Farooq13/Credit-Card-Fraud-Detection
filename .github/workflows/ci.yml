@@ -1,0 +1,51 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Prepare sample data
+        run: |
+          python - <<'PY'
+          import os
+          import numpy as np
+          import pandas as pd
+
+          os.makedirs("data/raw", exist_ok=True)
+          n = 200
+          df = pd.DataFrame({
+              "Time": np.arange(n),
+              "Amount": np.random.lognormal(mean=3, sigma=1, size=n),
+              "Class": np.concatenate([np.zeros(n - 10, dtype=int), np.ones(10, dtype=int)])
+          })
+          df.to_csv("data/raw/ci_creditcard.csv", index=False)
+          PY
+
+      - name: Preprocess
+        run: |
+          python mlops_pipeline.py --stage preprocess --input data/raw/ci_creditcard.csv --output data/processed
+
+      - name: Train
+        run: |
+          python mlops_pipeline.py --stage train --config configs/train_config.yaml
+
+      - name: Pytest
+        run: |
+          pytest
