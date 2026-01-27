@@ -1,5 +1,4 @@
 # Credit Card Fraud Detection
-[![CI](https://github.com/Muhammad-Farooq13/Credit-Card-Fraud-Detection/actions/workflows/ci.yml/badge.svg)](https://github.com/Muhammad-Farooq13/Credit-Card-Fraud-Detection/actions/workflows/ci.yml)
 
 ## Project Overview
 This project builds and deploys machine learning models to detect fraudulent credit card transactions. It follows MLOps best practices for reproducibility, testing, and deployment. The repository is structured for GitHub publishing and supports both local Flask serving and containerized deployment via Docker.
