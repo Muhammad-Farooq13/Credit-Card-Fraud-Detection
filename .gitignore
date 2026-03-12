@@ -15,8 +15,10 @@ data/processed/*
 !data/processed/.gitkeep
 artifacts/*
 !artifacts/.gitkeep
+!artifacts/fraud_demo.pkl
 
 # Model/data artifacts by extension
 *.npz
-*.pkl
 *.joblib
+# Keep demo bundle
+!artifacts/fraud_demo.pkl

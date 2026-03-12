@@ -1,4 +1,4 @@
-name: ci
+name: CI
 
 on:
   push:
@@ -7,19 +7,29 @@ on:
 jobs:
   build-test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
+          python -m pip install -r requirements-ci.txt
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      - name: Format check (black)
+        run: black --check .
 
       - name: Prepare sample data
         run: |
@@ -30,10 +40,13 @@ jobs:
 
           os.makedirs("data/raw", exist_ok=True)
           n = 200
+          np.random.seed(42)
+          v_cols = {f"V{i}": np.random.randn(n) for i in range(1, 29)}
           df = pd.DataFrame({
               "Time": np.arange(n),
               "Amount": np.random.lognormal(mean=3, sigma=1, size=n),
-              "Class": np.concatenate([np.zeros(n - 10, dtype=int), np.ones(10, dtype=int)])
+              **v_cols,
+              "Class": np.concatenate([np.zeros(n - 10, dtype=int), np.ones(10, dtype=int)]),
           })
           df.to_csv("data/raw/ci_creditcard.csv", index=False)
           PY
@@ -48,4 +61,10 @@ jobs:
 
       - name: Pytest
         run: |
-          pytest
+          pytest --cov=src --cov-report=xml
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.xml
+          fail_ci_if_error: false
